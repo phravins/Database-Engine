@@ -1,0 +1,9 @@
+build/
+build_release/
+install/
+*.db
+*.log
+*.cat
+*.exe
+*.zip
+output.txt

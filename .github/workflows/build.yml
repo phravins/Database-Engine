@@ -1,0 +1,80 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: v2vdb-linux
+            asset_name: v2vdb-linux
+          - os: windows-latest
+            artifact_name: v2vdb-windows.exe
+            asset_name: v2vdb-windows.exe
+          - os: macos-latest
+            artifact_name: v2vdb-macos
+            asset_name: v2vdb-macos
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release -G "MinGW Makefiles"
+      if: matrix.os == 'windows-latest'
+
+    - name: Configure CMake (Unix)
+      run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+      if: matrix.os != 'windows-latest'
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Prepare Artifact
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          if [ -f "build/Release/mydb.exe" ]; then
+            mv build/Release/mydb.exe ${{ matrix.asset_name }}
+          else
+            mv build/mydb.exe ${{ matrix.asset_name }}
+          fi
+        else
+          mv build/mydb ${{ matrix.asset_name }}
+        fi
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ matrix.asset_name }}
+        path: ${{ matrix.asset_name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: actions/download-artifact@v3
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          v2vdb-linux/v2vdb-linux
+          v2vdb-windows.exe/v2vdb-windows.exe
+          v2vdb-macos/v2vdb-macos
+          installers/v2vdb-installer.cmd
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
