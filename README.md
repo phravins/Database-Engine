@@ -1,5 +1,7 @@
 # V2V Database (mydb)
 
+[![User Guide](https://img.shields.io/badge/📖-User_Guide-blue)](userguide.md)
+
 **V2V Database** is an educational, disk-backed relational database engine written in C++17. It implements core database internals from scratch, including paging, heap storage, B+ Tree indexing, and WAL-based crash recovery.
 
 ## Features
@@ -11,66 +13,54 @@
 - **Persistence**: Catalog saves table schemas across restarts.
 - **Interface**: Interactive SQL shell (`mydb>`).
 
-## Prerequisites
+## 📚 Documentation
+- [**V2V Query Language Guide**](V2V_LANGUAGE.md) - Detailed syntax guide.
+- [**Quick Command Cheatsheet**](DB_COMMANDS.md) - **<-- Look here for examples!**
 
-- **OS**: Windows (tested), Linux/macOS (adaptable).
-- **Compiler**: C++17 compatible (GCC, Clang, MSVC).
-- **Build System**: CMake (3.10+).
+## Quick Install (No Compiler Required)
 
-## Installation
+We provide a single universal installer script for Windows, Linux, and macOS.
 
-You can install V2V Database using the provided script or manually via CMake.
-
-### Option 1: Quick Install (Command Line)
-Run the installation script to build and install the binary locally.
-
-**Windows:**
-```cmd
-install.bat
+### Windows
+Run this command in PowerShell as Administrator:
+```powershell
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -useb https://raw.githubusercontent.com/phravins/Database-Engine/main/installers/v2vdb-installer.cmd -OutFile install.bat; .\install.bat"
 ```
 
-**Linux / macOS:**
+### Linux / macOS
+Run this command in your terminal:
 ```bash
-chmod +x install.sh
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/phravins/Database-Engine/main/installers/v2vdb-installer.cmd | sudo bash
 ```
 
-This will create an `install/bin` folder containing the executable.
+## Package Manager Updates
 
-### Option 2: Create Package (Deployment)
-Generates a distributable package (ZIP on Windows, ZIP/Tarball on Unix).
+If you are using package managers in the future:
 
-**Windows:**
-```cmd
-deploy.bat
-```
-
-**Linux / macOS:**
+### Homebrew (Mac/Linux)
 ```bash
-chmod +x deploy.sh
-./deploy.sh
+brew update
+brew upgrade v2vdb
 ```
 
-### Option 3: Manual Build (CLI)
-If you prefer standard CMake commands:
-
+### Chocolatey (Windows)
 ```bash
-mkdir build
-cd build
-cmake -G "MinGW Makefiles" ..
-cmake --build .
+choco upgrade v2vdb
 ```
-*(Note: Replace "MinGW Makefiles" with your generator of choice, e.g., "Visual Studio 17 2022" if using MSVC).*
 
 ## Usage
 
-1.  **Start the Database**:
-    ```cmd
-    .\build\mydb.exe
-    ```
-    On startup, the system will perform crash recovery and load the catalog.
+After installation, simply type:
+After installation, simply type:
+```bash
+v2vdb
+```
 
-2.  **Execute SQL**:
+**Default Credentials:**
+- Username: `admin`
+- Password: `admin`
+
+1.  **Execute SQL**:
     The system supports a subset of SQL:
     
     ```sql
@@ -88,12 +78,27 @@ cmake --build .
     exit
     ```
 
-3.  **Persistence**:
+2.  **Persistence**:
     - Data is stored in `mydb.db` (binary pages).
     - Logs are stored in `wal.log` (write-ahead log).
     - Schemas are stored in `mydb.cat` (catalog).
     
     You can close the application and restart it; your data and tables will remain.
+
+## Build from Source (Optional)
+
+If you want to contribute or build from source:
+
+**Windows:**
+```cmd
+build-all.bat
+```
+
+**Linux / macOS:**
+```bash
+chmod +x build-all.sh
+./build-all.sh
+```
 
 ## Architecture
 
@@ -101,3 +106,6 @@ cmake --build .
 *   **src/execution**: SQL Executor and TableHeap logic.
 *   **src/recovery**: LogManager and ARIES Redo logic.
 *   **src/cli**: Shell interface.
+
+The V2V database system is implemented under the project ID named (Project Cpp)
+-------------------------------------------------------------------------------
