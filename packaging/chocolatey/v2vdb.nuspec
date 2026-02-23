@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>v2vdb</id>
+    <version>1.0.0</version>
+    <title>v2vdb Database Engine</title>
+    <authors>phravins</authors>
+    <projectUrl>https://github.com/phravins/Database-Engine</projectUrl>
+    <tags>database cpp educational</tags>
+    <summary>Educational, disk-backed relational database engine.</summary>
+    <description>v2vdb is an educational, disk-backed relational database engine written in C++17.</description>
+    <releaseNotes>Initial release.</releaseNotes>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
