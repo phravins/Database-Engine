@@ -1,0 +1,93 @@
+@echo off
+echo ========================================
+echo   v2vdb Database - Windows Installer
+echo ========================================
+
+REM Config
+set VERSION=1.0.0
+set GITHUB_USER=phravins
+set REPO=Database-Engine
+set INSTALL_DIR=%ProgramFiles%\v2vdb
+set TEMP_FILE=%TEMP%\v2vdb.exe
+
+REM Check admin
+net session >nul 2>&1
+if %errorlevel% neq 0 (
+    echo [INFO] Not running as Administrator. Installing to user directory...
+    set INSTALL_DIR=%LOCALAPPDATA%\v2vdb
+    set SYSTEM_INSTALL=0
+) else (
+    set INSTALL_DIR=%ProgramFiles%\v2vdb
+    set SYSTEM_INSTALL=1
+)
+
+set LOCAL_FILE=%~dp0..\releases\windows\v2vdb.exe
+if exist "%LOCAL_FILE%" (
+    echo [1/4] Found local build, installing directly...
+    copy /Y "%LOCAL_FILE%" "%TEMP_FILE%"
+    goto :INSTALL
+)
+
+echo [1/4] Downloading v2vdb...
+set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/download/v%VERSION%/v2vdb-windows.exe
+set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/download/v%VERSION%/v2vdb-windows.exe
+
+where curl >nul 2>&1
+if %errorlevel% equ 0 (
+    curl -L -f "%URL%" -o "%TEMP_FILE%"
+) else (
+    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%URL%' -OutFile '%TEMP_FILE%'"
+)
+
+if not exist "%TEMP_FILE%" (
+    echo ERROR: Download failed!
+    echo URL: %URL%
+    pause
+    exit /b 1
+)
+
+for %%I in ("%TEMP_FILE%") do set SIZE=%%~zI
+if %SIZE% LSS 1024 (
+    echo ERROR: Downloaded file is too small (%SIZE% bytes). Likely a 404 error.
+    echo Please ensure release v%VERSION% exists on GitHub with 'v2vdb-windows.exe' asset.
+    del "%TEMP_FILE%"
+    pause
+    exit /b 1
+)
+
+:INSTALL
+echo [2/4] Creating installation directory...
+if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+
+echo [3/4] Installing v2vdb...
+copy /Y "%TEMP_FILE%" "%INSTALL_DIR%\v2vdb.exe"
+
+echo [4/4] Adding to PATH...
+set "PATH_TO_ADD=%INSTALL_DIR%"
+for /f "tokens=2,*" %%A in ('reg query "HKCU\Environment" /v Path') do set "USER_PATH=%%B"
+
+echo %USER_PATH% | findstr /C:"%PATH_TO_ADD%" >nul 2>&1
+if errorlevel 1 (
+    setx PATH "%USER_PATH%;%PATH_TO_ADD%"
+    echo Added %PATH_TO_ADD% to User PATH.
+) else (
+    echo Path already exists in User PATH.
+)
+
+if "%SYSTEM_INSTALL%"=="1" (
+    for /f "tokens=2,*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path') do set "SYS_PATH=%%B"
+    echo %SYS_PATH% | findstr /C:"%PATH_TO_ADD%" >nul 2>&1
+    if errorlevel 1 (
+        setx /M PATH "%SYS_PATH%;%PATH_TO_ADD%"
+        echo Added %PATH_TO_ADD% to System PATH.
+    )
+)
+
+echo.
+echo ========================================
+echo   Installation Complete!
+echo ========================================
+echo.
+echo Open a NEW command prompt and type: v2vdb
+echo.
+pause
