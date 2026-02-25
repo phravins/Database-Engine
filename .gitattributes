@@ -1,0 +1,5 @@
+# Treat all C++ files as C for language statistics
+*.cpp linguist-language=C
+*.hpp linguist-language=C
+*.cc linguist-language=C
+*.h linguist-language=C
