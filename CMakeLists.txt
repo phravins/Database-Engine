@@ -4,9 +4,18 @@ project(mydb)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Static linking for standalone Windows binary
+# Static linking for standalone binaries
 if(WIN32 AND MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+elseif(UNIX)
+    # Linux and macOS portable linking
+    if(APPLE)
+        # macOS doesn't support -static, but we can ensure dependencies are handled
+        # Most system libs are standard, but we avoid non-standard dynamic linking where possible.
+    else()
+        # Linux static linking for portability
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+    endif()
 endif()
 
 include_directories(include)
