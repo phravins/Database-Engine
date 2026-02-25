@@ -12,7 +12,7 @@
 #include "cli/shell.h"
 
 // Simple update checker using system commands to avoid dependencies
-void checkAndNotifyUpdate() {
+void checkAndNotifyUpdate(bool force = false) {
     std::string remote_url = "https://raw.githubusercontent.com/phravins/Database-Engine/main/version.json";
     std::string temp_file = "version_check.json";
     std::string current_version = "1.0.5"; // Current version
@@ -47,17 +47,25 @@ void checkAndNotifyUpdate() {
                 if (latest_version != current_version) {
                     std::cout << "\n\033[1;33m[UPDATE AVAILABLE] v" << latest_version << " is available! (Current: v" << current_version << ")\033[0m" << std::endl;
                     std::cout << "\033[1;33mDownload at: https://github.com/phravins/Database-Engine/releases/latest\033[0m\n" << std::endl;
+                } else if (force) {
+                    std::cout << "\033[1;32mDatabase is already up to date (v" << current_version << ").\033[0m" << std::endl;
                 }
             }
         }
     }
 }
 
-int main(int argc, char* argv[]) {
-    // 0. check for updates
-    checkAndNotifyUpdate();
+void printHelp(const char* prog_name) {
+    std::cout << "Usage: " << prog_name << " [options] [basename]" << std::endl;
+    std::cout << "Options:" << std::endl;
+    std::cout << "  --db <file>    Path to database file (default: v2v-1.db)" << std::endl;
+    std::cout << "  --cat <file>   Path to catalog file (default: v2v-1.cat)" << std::endl;
+    std::cout << "  --help, -h     Show this help message" << std::endl;
+    std::cout << "  [basename]     Legacy support: <basename>.db and <basename>.cat" << std::endl;
+}
 
-    // 0.5 Parse Arguments
+int main(int argc, char* argv[]) {
+    // 0. Parse Arguments
     std::string db_file = "v2v-1.db";
     std::string cat_file = "v2v-1.cat";
 
@@ -67,12 +75,18 @@ int main(int argc, char* argv[]) {
             db_file = argv[++i];
         } else if (arg == "--cat" && i + 1 < argc) {
             cat_file = argv[++i];
+        } else if (arg == "--help" || arg == "-h") {
+            printHelp(argv[0]);
+            return 0;
         } else if (i == 1 && arg[0] != '-') {
             // Support legacy positional argument: v2vdb.exe <basename>
             db_file = arg + ".db";
             cat_file = arg + ".cat";
         }
     }
+
+    // 0.5 check for updates
+    checkAndNotifyUpdate();
 
     std::cout << "Using database: " << db_file << std::endl;
 
