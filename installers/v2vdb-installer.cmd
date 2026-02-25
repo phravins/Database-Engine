@@ -6,7 +6,7 @@ goto :WINDOWS
 # ==============================================================================
 #  LINUX / MACOS (Bash)
 # ==============================================================================
-VERSION="1.0.2"
+VERSION="1.0.6"
 GITHUB_USER="phravins"
 REPO="Database-Engine"
 INSTALL_DIR="/usr/local/bin"
@@ -28,7 +28,7 @@ echo "[1/3] Downloading v2vdb for $OS..."
 if [[ "$OS" == "darwin" ]]; then
     OS="macos"
 fi
-URL="https://github.com/$GITHUB_USER/$REPO/releases/latest/download/v2vdb-${OS}"
+URL="https://github.com/$GITHUB_USER/$REPO/releases/download/latest/v2vdb-${OS}"
 TEMP_FILE="/tmp/v2vdb"
 
 if command -v curl &> /dev/null; then
@@ -72,7 +72,7 @@ echo   v2vdb Database - Windows Installer
 echo ========================================
 
 REM Config
-set VERSION=1.0.0
+set VERSION=1.0.6
 set GITHUB_USER=phravins
 set REPO=Database-Engine
 set INSTALL_DIR=%ProgramFiles%\v2vdb
@@ -86,7 +86,7 @@ if %errorlevel% neq 0 (
 )
 
 echo [1/4] Downloading v2vdb...
-set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/download/v%VERSION%/v2vdb-windows.exe
+set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/download/latest/v2vdb-windows.exe
 set TEMP_FILE=%TEMP%\v2vdb.exe
 
 where curl >nul 2>&1
