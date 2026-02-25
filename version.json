@@ -1,0 +1,10 @@
+{
+  "latest_version": "1.0.6",
+  "release_date": "2026-02-15",
+  "download_url": "https://github.com/phravins/Database-Engine/releases/latest",
+  "changelog": [
+    "Initial Release",
+    "Pre-built binaries support"
+  ],
+  "critical_update": false
+}
