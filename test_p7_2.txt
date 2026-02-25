@@ -1,0 +1,2 @@
+SELECT * FROM persistent_users
+exit
