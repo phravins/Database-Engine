@@ -1,0 +1,16 @@
+V2VDB_CATALOG_V1
+TABLE_COUNT 2
+TABLE pupils
+ROOT 3
+COLUMNS 4
+COLUMN id 1 0
+COLUMN required 2 0
+COLUMN string 2 0
+COLUMN age 1 0
+TABLE students
+ROOT 3
+COLUMNS 4
+COLUMN id 1 0
+COLUMN required 2 0
+COLUMN string 2 0
+COLUMN age 1 0
