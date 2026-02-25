@@ -25,16 +25,20 @@ public:
             std::cout << "mydb> ";
             if (!std::getline(std::cin, line)) break;
             
-            if (line == "exit" || line == "quit") {
+            if (line.empty()) continue;
+            
+            // Convert line to lower case for command matching
+            std::string cmd_lower = line;
+            for (auto &c : cmd_lower) c = std::tolower(c);
+            
+            if (cmd_lower == "exit" || cmd_lower == "quit") {
                 break;
             }
             
-            if (line == "update") {
+            if (cmd_lower == "update") {
                 checkAndNotifyUpdate(true);
                 continue;
             }
-            
-            if (line.empty()) continue;
             
             try {
                 // Determine command type for formatting

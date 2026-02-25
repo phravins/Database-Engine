@@ -11,6 +11,8 @@
 #include "catalog/catalog_manager.h"
 #include "cli/shell.h"
 
+namespace mydb {
+
 // Simple update checker using system commands to avoid dependencies
 void checkAndNotifyUpdate(bool force = false) {
     std::string remote_url = "https://raw.githubusercontent.com/phravins/Database-Engine/main/version.json";
@@ -64,6 +66,8 @@ void printHelp(const char* prog_name) {
     std::cout << "  [basename]     Legacy support: <basename>.db and <basename>.cat" << std::endl;
 }
 
+} // namespace mydb
+
 int main(int argc, char* argv[]) {
     // 0. Parse Arguments
     std::string db_file = "v2v-1.db";
@@ -76,7 +80,7 @@ int main(int argc, char* argv[]) {
         } else if (arg == "--cat" && i + 1 < argc) {
             cat_file = argv[++i];
         } else if (arg == "--help" || arg == "-h") {
-            printHelp(argv[0]);
+            mydb::printHelp(argv[0]);
             return 0;
         } else if (i == 1 && arg[0] != '-') {
             // Support legacy positional argument: v2vdb.exe <basename>
@@ -86,7 +90,7 @@ int main(int argc, char* argv[]) {
     }
 
     // 0.5 check for updates
-    checkAndNotifyUpdate();
+    mydb::checkAndNotifyUpdate();
 
     std::cout << "Using database: " << db_file << std::endl;
 
