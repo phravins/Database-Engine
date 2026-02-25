@@ -2,6 +2,8 @@ name: Build and Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -71,6 +73,9 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
+        tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
+        name: ${{ github.ref_type == 'tag' && github.ref_name || 'Latest Auto-Build' }}
+        prerelease: ${{ github.ref_type != 'tag' }}
         files: |
           v2vdb-linux/v2vdb-linux
           v2vdb-windows.exe/v2vdb-windows.exe

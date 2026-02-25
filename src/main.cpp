@@ -13,13 +13,13 @@
 
 namespace mydb {
 
-// Simple update checker using system commands to avoid dependencies
+// Simple update checker and installer
 void checkAndNotifyUpdate(bool force = false) {
     std::string remote_url = "https://raw.githubusercontent.com/phravins/Database-Engine/main/version.json";
     std::string temp_file = "version_check.json";
-    std::string current_version = "1.0.5"; // Current version
+    std::string current_version = "1.0.6"; // Updated version to 1.0.6
 
-    // Download file
+    // Download version file
 #ifdef _WIN32
     std::string cmd = "powershell -Command \"Invoke-WebRequest -Uri '" + remote_url + "' -OutFile '" + temp_file + "'\" > NUL 2>&1";
 #else
@@ -27,10 +27,7 @@ void checkAndNotifyUpdate(bool force = false) {
 #endif
 
     int ret = system(cmd.c_str());
-    if (ret != 0) {
-        // Silently fail if no internet or command missing
-        return;
-    }
+    if (ret != 0) return;
 
     std::ifstream ifs(temp_file);
     if (ifs.is_open()) {
@@ -47,8 +44,44 @@ void checkAndNotifyUpdate(bool force = false) {
             if (end != std::string::npos) {
                 std::string latest_version = content.substr(start, end - start);
                 if (latest_version != current_version) {
-                    std::cout << "\n\033[1;33m[UPDATE AVAILABLE] v" << latest_version << " is available! (Current: v" << current_version << ")\033[0m" << std::endl;
-                    std::cout << "\033[1;33mDownload at: https://github.com/phravins/Database-Engine/releases/latest\033[0m\n" << std::endl;
+                    std::cout << "\n\033[1;33m[UPDATE] New version v" << latest_version << " detected! (Current: v" << current_version << ")\033[0m" << std::endl;
+                    
+                    if (force) {
+                        std::cout << "\033[1;36mStarting automatic update...\033[0m" << std::endl;
+                        
+#ifdef _WIN32
+                        std::string bin_url = "https://github.com/phravins/Database-Engine/releases/download/latest/v2vdb-windows.exe";
+                        std::cout << "Downloading new binary..." << std::endl;
+                        std::string dl_cmd = "powershell -Command \"Invoke-WebRequest -Uri '" + bin_url + "' -OutFile 'v2vdb_next.exe'\"";
+                        if (system(dl_cmd.c_str()) == 0) {
+                            std::cout << "Binary downloaded. Restarting to apply update..." << std::endl;
+                            
+                            std::ofstream batch("v2v_updater.bat");
+                            batch << "@echo off\n";
+                            batch << ":loop\n";
+                            batch << "tasklist | find /i \"v2vdb.exe\" > nul\n";
+                            batch << "if errorlevel 1 (goto :update)\n";
+                            batch << "timeout /t 1 /nobreak > nul\n";
+                            batch << "goto :loop\n";
+                            batch << ":update\n";
+                            batch << "copy /y v2vdb_next.exe v2vdb.exe > nul\n";
+                            batch << "del v2vdb_next.exe\n";
+                            batch << "start v2vdb.exe\n";
+                            batch << "del \"%~f0\"\n";
+                            batch.close();
+                            
+                            system("start /b v2v_updater.bat");
+                            exit(0);
+                        } else {
+                            std::cout << "\033[1;31mDownload failed.\033[0m" << std::endl;
+                        }
+#else
+                        std::cout << "\033[1;33mAuto-update is currently supported on Windows only.\033[0m" << std::endl;
+                        std::cout << "\033[1;33mPlease download manually from: https://github.com/phravins/Database-Engine/releases/latest\033[0m" << std::endl;
+#endif
+                    } else {
+                        std::cout << "\033[1;33mType 'update' in the shell to install it automatically.\033[0m\n" << std::endl;
+                    }
                 } else if (force) {
                     std::cout << "\033[1;32mDatabase is already up to date (v" << current_version << ").\033[0m" << std::endl;
                 }
