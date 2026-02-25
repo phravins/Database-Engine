@@ -217,7 +217,7 @@ public:
             SanitizeIdentifier(stmt.table_name);
         }
         // 10. HELP
-        else if (cmd == "HELP" || cmd == "?") {
+        else if (cmd == "HELP" || cmd == "?" || cmd == "--HELP" || cmd == "-H") {
             stmt.type = StatementType::HELP;
         }
         // 11. SYSTEM
