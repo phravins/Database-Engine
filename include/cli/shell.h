@@ -10,6 +10,9 @@
 
 namespace mydb {
 
+// External declaration of update checker
+void checkAndNotifyUpdate(bool force);
+
 class Shell {
 public:
     explicit Shell(Executor* executor) : executor_(executor) {}
@@ -24,6 +27,11 @@ public:
             
             if (line == "exit" || line == "quit") {
                 break;
+            }
+            
+            if (line == "update") {
+                checkAndNotifyUpdate(true);
+                continue;
             }
             
             if (line.empty()) continue;
@@ -55,7 +63,7 @@ private:
         std::cout << "  \\ \\  / /    ) | \\ \\  / / " << std::endl;
         std::cout << "   \\ \\/ /    / /   \\ \\/ /  " << std::endl;
         std::cout << "    \\__/    /___|   \\__/   " << std::endl;
-        std::cout << "V2V Database (mydb) v1.0" << std::endl;
+        std::cout << "V2V Database (mydb) v1." << std::endl;
         std::cout << "Type 'exit' to quit." << std::endl;
         std::cout << "-----------------------------------" << std::endl;
     }
