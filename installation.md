@@ -2,9 +2,9 @@
 
 The V2V Database Engine is designed to be portable and easy to install across Windows, Linux, and macOS.
 
-## 🚀 Quick Setup
+## Quick Setup
 
-### 🪟 Windows (Recommended)
+### Windows (Recommended)
 1. Download the latest `v2vdb-windows.exe` from the [Releases](https://github.com/phravins/Database-Engine/releases/latest) page.
 2. Place the executable in any folder.
 3. Open a terminal (CMD or PowerShell) in that folder.
@@ -14,7 +14,7 @@ The V2V Database Engine is designed to be portable and easy to install across Wi
    ```
    *(Note: The binary is standalone and does not require additional DLLs).*
 
-### 🐧 Linux
+### Linux
 1. Download the `v2vdb-linux` binary from the [Releases](https://github.com/phravins/Database-Engine/releases/latest) page.
 2. Grant execution permissions:
    ```bash
@@ -25,7 +25,7 @@ The V2V Database Engine is designed to be portable and easy to install across Wi
    ./v2vdb-linux
    ```
 
-### 🍎 macOS
+### macOS
 1. Download the `v2vdb-macos` binary from the [Releases](https://github.com/phravins/Database-Engine/releases/latest) page.
 2. Grant execution permissions:
    ```bash
@@ -36,18 +36,18 @@ The V2V Database Engine is designed to be portable and easy to install across Wi
    ./v2vdb-macos
    ```
 
-## 🔄 Auto-Update Feature
+## Auto-Update Feature
 Once installed, you can keep your database engine up to date without manual downloads:
 1. Open the interactive shell.
 2. Type `update`.
 3. The system will automatically check for the latest version, download the new binary, and restart the application for you.
 
-## 🛡️ Security
+## Security
 The default credentials for the interactive shell are:
 - **Username**: `admin`
 - **Password**: `admin`
 
-## 🛠️ Building from Source
+## Building from Source
 If you prefer to build the project yourself:
 1. Ensure you have `CMake` and a `C++17` compiler installed.
 2. Run:
