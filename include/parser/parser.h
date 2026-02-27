@@ -191,7 +191,6 @@ public:
             SanitizeIdentifier(stmt.table_name);
             ss >> stmt.file_path;
         }
-        }
         // 7. DELETE
         else if (cmd == "DELETE") {
             stmt.type = StatementType::DELETE;
