@@ -40,6 +40,16 @@ public:
                 continue;
             }
             
+            if (cmd_lower == "history") {
+                std::cout << "\033[1;36mCommand History:\033[0m" << std::endl;
+                for (size_t i = 0; i < history_.size(); ++i) {
+                    std::cout << "  " << i + 1 << ": " << history_[i] << std::endl;
+                }
+                continue;
+            }
+            
+            history_.push_back(line);
+            
             try {
                 // Determine command type for formatting
                 // Executor currently prints directly. We need to modify Executor to return results 
@@ -75,6 +85,7 @@ private:
     }
 
     Executor* executor_;
+    std::vector<std::string> history_;
 };
 
 } // namespace mydb
