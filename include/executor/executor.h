@@ -36,6 +36,8 @@ public:
             HandleImport(stmt);
         } else if (stmt.type == StatementType::DELETE) {
             HandleDelete(stmt);
+        } else if (stmt.type == StatementType::CLEAR) {
+            HandleClear(stmt);
         } else if (stmt.type == StatementType::UPDATE) {
             HandleUpdate(stmt);
         } else if (stmt.type == StatementType::DESCRIBE) {
@@ -385,6 +387,17 @@ private:
         TableHeap* table = tables_[stmt.table_name].get();
         int count = table->Delete(stmt.where_column, stmt.where_value);
         std::cout << "\033[1;32mDeleted " << count << " rows.\033[0m" << std::endl;
+    }
+    
+    void HandleClear(const Statement& stmt) {
+        if (tables_.find(stmt.table_name) == tables_.end()) {
+            std::cout << "\033[1;31mError: Table '" << stmt.table_name << "' not found.\033[0m" << std::endl;
+            return;
+        }
+        
+        TableHeap* table = tables_[stmt.table_name].get();
+        int count = table->Delete("", "");
+        std::cout << "\033[1;32mCleared " << count << " rows from table " << stmt.table_name << ".\033[0m" << std::endl;
     }
     
     void HandleDescribe(const Statement& stmt) {

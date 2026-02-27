@@ -15,6 +15,7 @@ enum class StatementType {
     EXPORT,
     IMPORT,
     DELETE,
+    CLEAR,
     UPDATE,
     DESCRIBE,
     SHOW_TABLES,
@@ -184,14 +185,27 @@ public:
             SanitizeIdentifier(stmt.table_name);
             ss >> stmt.file_path;
         }
+        }
         // 7. DELETE
         else if (cmd == "DELETE") {
             stmt.type = StatementType::DELETE;
             ss >> word; 
-            stmt.type = StatementType::DELETE;
-            ss >> stmt.table_name;
+            if (word == "*") ss >> word; // SKIP *
+            stmt.table_name = ""; // Reset just in case
+            if (word == "FROM" || word == "from") ss >> stmt.table_name;
+            else stmt.table_name = word;
             SanitizeIdentifier(stmt.table_name);
             ParseWhereClause(ss, stmt);
+        }
+        // 7b. CLEAR
+        else if (cmd == "CLEAR" || cmd == "TRUNCATE") {
+            stmt.type = StatementType::CLEAR;
+            ss >> word;
+            std::string sub = word;
+            for (auto &c : sub) c = std::toupper(c);
+            if (sub == "TABLE") ss >> stmt.table_name;
+            else stmt.table_name = word;
+            SanitizeIdentifier(stmt.table_name);
         }
         // 8. UPDATE
         else if (cmd == "UPDATE") {
