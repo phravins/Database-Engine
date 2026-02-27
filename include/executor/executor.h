@@ -439,7 +439,17 @@ private:
         }
         std::cout << "Tables (" << tables_.size() << "):" << std::endl;
         for (const auto& pair : tables_) {
-            std::cout << " - " << pair.first << std::endl;
+            const std::string& name = pair.first;
+            TableHeap* table = pair.second.get();
+            const Schema& schema = schemas_.at(name);
+            
+            // Get row count by scanning (inefficient but works for now)
+            std::vector<Tuple> tuples = table->Scan();
+            int rows = tuples.size();
+            
+            std::cout << " - \033[1;36m" << std::left << std::setw(15) << name << "\033[0m"
+                      << " | Cols: " << std::setw(3) << schema.GetColumnCount() 
+                      << " | Rows: " << rows << std::endl;
         }
     }
 
