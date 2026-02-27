@@ -124,11 +124,15 @@ private:
             for (size_t i = 0; i < stmt.values.size(); ++i) {
                  const Column& col = schema.GetColumn(i);
                  if (col.GetType() == TypeID::INTEGER) {
-                     // Safe conversion
+                     // Strict Type Checking
+                     // std::stoi allows trailing characters (e.g., "12abc" -> 12), but we want strict filtering
                      size_t pos;
                      int val = std::stoi(stmt.values[i], &pos);
                      if (pos != stmt.values[i].length()) {
-                          throw std::invalid_argument("Not a valid integer");
+                          std::cout << "\033[1;31mType Error: Column '" << col.GetName() 
+                                    << "' expects INT, but received invalid format '" 
+                                    << stmt.values[i] << "'. Insert aborted.\033[0m" << std::endl;
+                          return;
                      }
                      values.emplace_back(val);
                  } else {
