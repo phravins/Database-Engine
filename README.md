@@ -1,7 +1,7 @@
 # V2V Database (mydb)
 
-[![User Guide](https://img.shields.io/badge/📖-User_Guide-blue)](userguide.md)
-[![Installation Guide](https://img.shields.io/badge/🚀-Installation_Guide-green)](installation.md)
+[![User Guide](https://img.shields.io/badge/User_Guide-blue)](userguide.md)
+[![Installation Guide](https://img.shields.io/badge/Installation_Guide-green)](installation.md)
 
 **V2V Database** is an disk-backed relational database engine written in C++17. It implements core database internals from scratch, including paging, heap storage, B+ Tree indexing, and WAL-based crash recovery.
 
