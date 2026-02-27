@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <chrono>
 #include <ctime>
+#include <algorithm>
 
 namespace mydb {
 
@@ -201,6 +202,33 @@ private:
         if (filtered_tuples.empty()) {
             std::cout << "(0 rows)" << std::endl;
             return;
+        }
+
+        // Apply ORDER BY if specified
+        if (!stmt.order_by_column.empty()) {
+            int order_col_idx = -1;
+            TypeID order_col_type = TypeID::INVALID;
+            for (uint32_t i = 0; i < schema.GetColumnCount(); ++i) {
+                if (schema.GetColumn(i).GetName() == stmt.order_by_column) {
+                    order_col_idx = i;
+                    order_col_type = schema.GetColumn(i).GetType();
+                    break;
+                }
+            }
+            if (order_col_idx != -1) {
+                std::sort(filtered_tuples.begin(), filtered_tuples.end(), 
+                          [order_col_idx, order_col_type](const Tuple& a, const Tuple& b) {
+                              const Value& valA = a.GetValue(order_col_idx);
+                              const Value& valB = b.GetValue(order_col_idx);
+                              if (order_col_type == TypeID::INTEGER) {
+                                  return valA.GetAsInteger() < valB.GetAsInteger();
+                              } else {
+                                  return valA.GetAsString() < valB.GetAsString();
+                              }
+                          });
+            } else {
+                 std::cout << "\033[1;31mWarning: ORDER BY column '" << stmt.order_by_column << "' not found.\033[0m" << std::endl;
+            }
         }
 
         // Calculate column widths

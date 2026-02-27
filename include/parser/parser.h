@@ -48,6 +48,9 @@ struct Statement {
     std::string where_op = "="; // Default, can be "!="
     std::string where_value;
     
+    // For ORDER BY clause
+    std::string order_by_column;
+    
     // For UPDATE (SET col = val)
     std::string update_column;
     std::string update_value;
@@ -328,13 +331,24 @@ private:
     static void ParseWhereClause(std::stringstream& ss, Statement& stmt) {
         std::string word;
         while (ss >> word) {
-            if (word == "WHERE" || word == "where") {
+            std::string sub = word;
+            for (auto &c : sub) c = std::toupper(c);
+            
+            if (sub == "WHERE") {
                 ss >> stmt.where_column;
                 SanitizeIdentifier(stmt.where_column);
                 ss >> stmt.where_op; // "=" or "!="
                 if (stmt.where_op == "=" || stmt.where_op == "!=") {
                    ss >> stmt.where_value;
                    CleanValue(stmt.where_value);
+                }
+            } else if (sub == "ORDER") {
+                ss >> word; // Expected "BY"
+                std::string by = word;
+                for (auto &c : by) c = std::toupper(c);
+                if (by == "BY") {
+                    ss >> stmt.order_by_column;
+                    SanitizeIdentifier(stmt.order_by_column);
                 }
             }
         }
