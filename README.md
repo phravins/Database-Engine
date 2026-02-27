@@ -115,5 +115,5 @@ chmod +x build-all.sh
 *   **src/recovery**: LogManager and ARIES Redo logic.
 *   **src/cli**: Shell interface.
 
-The V2V database system is implemented under the project ID named (Project Cpp)
--------------------------------------------------------------------------------
+_The V2V database system is implemented under the project ID - (Project CPP)_
+
