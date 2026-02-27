@@ -17,6 +17,7 @@ enum class StatementType {
     DELETE,
     CLEAR,
     ECHO,
+    TIME,
     UPDATE,
     DESCRIBE,
     SHOW_TABLES,
@@ -215,6 +216,10 @@ public:
             std::getline(ss, remainder);
             if (!remainder.empty() && remainder[0] == ' ') remainder = remainder.substr(1);
             stmt.file_path = remainder; // Using file_path to hold the message
+        }
+        // 7d. TIME
+        else if (cmd == "TIME" || cmd == "NOW") {
+            stmt.type = StatementType::TIME;
         }
         // 8. UPDATE
         else if (cmd == "UPDATE") {

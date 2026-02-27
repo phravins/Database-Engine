@@ -8,6 +8,8 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <chrono>
+#include <ctime>
 
 namespace mydb {
 
@@ -40,6 +42,8 @@ public:
             HandleClear(stmt);
         } else if (stmt.type == StatementType::ECHO) {
             HandleEcho(stmt);
+        } else if (stmt.type == StatementType::TIME) {
+            HandleTime(stmt);
         } else if (stmt.type == StatementType::UPDATE) {
             HandleUpdate(stmt);
         } else if (stmt.type == StatementType::DESCRIBE) {
@@ -404,6 +408,12 @@ private:
     
     void HandleEcho(const Statement& stmt) {
         std::cout << "\033[1;37m" << stmt.file_path << "\033[0m" << std::endl;
+    }
+    
+    void HandleTime(const Statement& stmt) {
+        auto now = std::chrono::system_clock::now();
+        std::time_t end_time = std::chrono::system_clock::to_time_t(now);
+        std::cout << "\033[1;36mCurrent Server Time: \033[0m" << std::ctime(&end_time); // ctime includes newline
     }
     
     void HandleDescribe(const Statement& stmt) {
