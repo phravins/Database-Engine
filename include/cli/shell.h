@@ -22,7 +22,7 @@ public:
         
         std::string line;
         while (true) {
-            std::cout << "mydb> ";
+            std::cout << "\033[1;33mmydb> \033[0m";
             if (!std::getline(std::cin, line)) break;
             
             if (line.empty()) continue;
@@ -62,11 +62,13 @@ public:
 
 private:
     void PrintWelcome() {
+        std::cout << "\033[1;36m" << std::endl;
         std::cout << " __      __ ___  __      __" << std::endl;
         std::cout << " \\ \\    / /|__ \\ \\ \\    / /" << std::endl;
         std::cout << "  \\ \\  / /    ) | \\ \\  / / " << std::endl;
         std::cout << "   \\ \\/ /    / /   \\ \\/ /  " << std::endl;
         std::cout << "    \\__/    /___|   \\__/   " << std::endl;
+        std::cout << "\033[0m" << std::endl;
         std::cout << "V2V Database (mydb) v1.0.6" << std::endl;
         std::cout << "Type 'exit' to quit." << std::endl;
         std::cout << "-----------------------------------" << std::endl;

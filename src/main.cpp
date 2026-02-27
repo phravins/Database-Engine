@@ -150,9 +150,9 @@ int main(int argc, char* argv[]) {
     // 5. Run Shell
     // Security: Simple Login
     std::string username, password;
-    std::cout << "-----------------------------------" << std::endl;
-    std::cout << "       V2V Database Security       " << std::endl;
-    std::cout << "-----------------------------------" << std::endl;
+    std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
+    std::cout << "       \033[1;35mV2V Database Security\033[0m       " << std::endl;
+    std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
     
     // Simple 3-try mechanism
     bool authenticated = false;
