@@ -16,6 +16,7 @@ enum class StatementType {
     IMPORT,
     DELETE,
     CLEAR,
+    ECHO,
     UPDATE,
     DESCRIBE,
     SHOW_TABLES,
@@ -206,6 +207,14 @@ public:
             if (sub == "TABLE") ss >> stmt.table_name;
             else stmt.table_name = word;
             SanitizeIdentifier(stmt.table_name);
+        }
+        // 7c. ECHO
+        else if (cmd == "ECHO") {
+            stmt.type = StatementType::ECHO;
+            std::string remainder;
+            std::getline(ss, remainder);
+            if (!remainder.empty() && remainder[0] == ' ') remainder = remainder.substr(1);
+            stmt.file_path = remainder; // Using file_path to hold the message
         }
         // 8. UPDATE
         else if (cmd == "UPDATE") {

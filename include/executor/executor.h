@@ -38,6 +38,8 @@ public:
             HandleDelete(stmt);
         } else if (stmt.type == StatementType::CLEAR) {
             HandleClear(stmt);
+        } else if (stmt.type == StatementType::ECHO) {
+            HandleEcho(stmt);
         } else if (stmt.type == StatementType::UPDATE) {
             HandleUpdate(stmt);
         } else if (stmt.type == StatementType::DESCRIBE) {
@@ -398,6 +400,10 @@ private:
         TableHeap* table = tables_[stmt.table_name].get();
         int count = table->Delete("", "");
         std::cout << "\033[1;32mCleared " << count << " rows from table " << stmt.table_name << ".\033[0m" << std::endl;
+    }
+    
+    void HandleEcho(const Statement& stmt) {
+        std::cout << "\033[1;37m" << stmt.file_path << "\033[0m" << std::endl;
     }
     
     void HandleDescribe(const Statement& stmt) {
