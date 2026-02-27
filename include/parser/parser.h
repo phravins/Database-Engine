@@ -242,8 +242,16 @@ public:
         // 9. DESCRIBE
         else if (cmd == "DESCRIBE" || cmd == "DESC") {
             stmt.type = StatementType::DESCRIBE;
-            ss >> stmt.table_name;
-            SanitizeIdentifier(stmt.table_name);
+            ss >> word;
+            std::string sub = word;
+            for (auto &c : sub) c = std::toupper(c);
+            
+            if (sub == "ALL") {
+                stmt.table_name = "ALL";
+            } else {
+                stmt.table_name = word;
+                SanitizeIdentifier(stmt.table_name);
+            }
         }
         // 10. HELP
         else if (cmd == "HELP" || cmd == "?" || cmd == "--HELP" || cmd == "-H") {

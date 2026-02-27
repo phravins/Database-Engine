@@ -425,12 +425,30 @@ private:
     }
     
     void HandleDescribe(const Statement& stmt) {
+        if (stmt.table_name == "ALL") {
+            if (schemas_.empty()) {
+                std::cout << "No tables to describe." << std::endl;
+                return;
+            }
+            std::cout << "\033[1;36mDatabase Schema Inventory\033[0m" << std::endl;
+            for (const auto& pair : schemas_) {
+                 PrintSchema(pair.first, pair.second);
+                 std::cout << std::endl;
+            }
+            return;
+        }
+
         if (schemas_.find(stmt.table_name) == schemas_.end()) {
             std::cout << "\033[1;31mError: Table '" << stmt.table_name << "' not found.\033[0m" << std::endl;
             return;
         }
-        const Schema& schema = schemas_.at(stmt.table_name);
-        std::cout << "Table: " << stmt.table_name << std::endl;
+        
+        PrintSchema(stmt.table_name, schemas_.at(stmt.table_name));
+    }
+    
+private:    
+    void PrintSchema(const std::string& table_name, const Schema& schema) {
+        std::cout << "Table: \033[1;33m" << table_name << "\033[0m" << std::endl;
         std::cout << "Columns: " << schema.GetColumnCount() << std::endl;
         for (const auto& col : schema.GetColumns()) {
             std::string type_str = (col.GetType() == TypeID::INTEGER) ? "INT" : "VARCHAR";
