@@ -98,7 +98,7 @@ public:
 
     // Delete tuples matching where col = val
     // Returns number of deleted tuples
-    int Delete(const std::string& col_name, const std::string& val_str) {
+    int Delete(const std::string& col_name, const std::string& op_str, const std::string& val_str) {
         int deleted_count = 0;
         
         // Resolve column index
@@ -132,9 +132,7 @@ public:
              for (const auto& tuple : tuples) {
                  bool match = false;
                  if (col_name.empty()) {
-                     match = true; // Delete all if no where clause? Or error? expecting where clause usually. 
-                     // Parser ensures where clause for DELETE usually, but let's say empty means delete all.
-                     match = true;
+                     match = true; 
                  } else {
                      const Value& v = tuple.GetValue(col_idx);
                      if (v.GetTypeId() == TypeID::INTEGER) {
@@ -142,6 +140,7 @@ public:
                      } else {
                          if (v.GetAsString() == val_str) match = true;
                      }
+                     if (op_str == "!=") match = !match;
                  }
                  
                  if (match) {
@@ -178,7 +177,7 @@ public:
     
     // Update tuples matching where col = val
     // Returns number of updated tuples
-    int Update(const std::string& where_col, const std::string& where_val,
+    int Update(const std::string& where_col, const std::string& where_op, const std::string& where_val,
                const std::string& set_col, const std::string& set_val) {
         int updated_count = 0;
         
@@ -229,6 +228,7 @@ public:
                      } else {
                          if (v.GetAsString() == where_val) match = true;
                      }
+                     if (where_op == "!=") match = !match;
                  }
                  
                  if (match) {

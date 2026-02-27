@@ -43,8 +43,9 @@ struct Statement {
     // For EXPORT/IMPORT/BACKUP/RESTORE
     std::string file_path;
     
-    // For WHERE clause (simple: col = val)
+    // For WHERE clause
     std::string where_column;
+    std::string where_op = "="; // Default, can be "!="
     std::string where_value;
     
     // For UPDATE (SET col = val)
@@ -322,8 +323,8 @@ private:
             if (word == "WHERE" || word == "where") {
                 ss >> stmt.where_column;
                 SanitizeIdentifier(stmt.where_column);
-                ss >> word; // =
-                if (word == "=") {
+                ss >> stmt.where_op; // "=" or "!="
+                if (stmt.where_op == "=" || stmt.where_op == "!=") {
                    ss >> stmt.where_value;
                    CleanValue(stmt.where_value);
                 }

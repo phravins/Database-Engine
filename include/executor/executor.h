@@ -182,6 +182,10 @@ private:
                     if (val.GetAsString() == stmt.where_value) match = true;
                 }
                 
+                if (stmt.where_op == "!=") {
+                    match = !match;
+                }
+                
                 if (match) {
                     filtered_tuples.push_back(tuple);
                 }
@@ -380,7 +384,7 @@ private:
         }
         
         TableHeap* table = tables_[stmt.table_name].get();
-        int count = table->Update(stmt.where_column, stmt.where_value, stmt.update_column, stmt.update_value);
+        int count = table->Update(stmt.where_column, stmt.where_op, stmt.where_value, stmt.update_column, stmt.update_value);
         std::cout << "\033[1;32mUpdated " << count << " rows.\033[0m" << std::endl;
     }
 
@@ -391,7 +395,7 @@ private:
         }
         
         TableHeap* table = tables_[stmt.table_name].get();
-        int count = table->Delete(stmt.where_column, stmt.where_value);
+        int count = table->Delete(stmt.where_column, stmt.where_op, stmt.where_value);
         std::cout << "\033[1;32mDeleted " << count << " rows.\033[0m" << std::endl;
     }
     
@@ -402,7 +406,7 @@ private:
         }
         
         TableHeap* table = tables_[stmt.table_name].get();
-        int count = table->Delete("", "");
+        int count = table->Delete("", "=", "");
         std::cout << "\033[1;32mCleared " << count << " rows from table " << stmt.table_name << ".\033[0m" << std::endl;
     }
     
