@@ -103,6 +103,7 @@ if not exist "%TEMP_FILE%" (
 )
 
 for %%I in ("%TEMP_FILE%") do set SIZE=%%~zI
+if "%SIZE%"=="" set SIZE=0
 if %SIZE% LSS 1024 (
     echo ERROR: Downloaded file is too small (%SIZE% bytes). Likely a 404 error.
     echo Please ensure release v%VERSION% exists on GitHub with 'v2vdb-windows.exe' asset.
