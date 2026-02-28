@@ -6,7 +6,7 @@ goto :WINDOWS
 # ==============================================================================
 #  LINUX / MACOS (Bash)
 # ==============================================================================
-VERSION="1.0.6"
+VERSION="1.0.7"
 GITHUB_USER="phravins"
 REPO="Database-Engine"
 INSTALL_DIR="/usr/local/bin"
@@ -72,7 +72,7 @@ echo   v2vdb Database - Windows Installer
 echo ========================================
 
 REM Config
-set VERSION=1.0.6
+set VERSION=1.0.7
 set GITHUB_USER=phravins
 set REPO=Database-Engine
 set INSTALL_DIR=%ProgramFiles%\v2vdb

@@ -17,7 +17,7 @@ namespace mydb {
 void checkAndNotifyUpdate(bool force = false) {
     std::string remote_url = "https://raw.githubusercontent.com/phravins/Database-Engine/main/version.json";
     std::string temp_file = "version_check.json";
-    std::string current_version = "1.0.6"; // Updated version to 1.0.6
+    std::string current_version = "1.0.7"; // Updated version to 1.0.7
 
     // Download version file
 #ifdef _WIN32
@@ -50,7 +50,7 @@ void checkAndNotifyUpdate(bool force = false) {
                         std::cout << "\033[1;36mStarting automatic update...\033[0m" << std::endl;
                         
 #ifdef _WIN32
-                        std::string bin_url = "https://github.com/phravins/Database-Engine/releases/download/latest/v2vdb-windows.exe";
+                        std::string bin_url = "https://github.com/phravins/Database-Engine/releases/latest/download/v2vdb-windows.exe";
                         std::cout << "Downloading new binary..." << std::endl;
                         std::string dl_cmd = "powershell -Command \"Invoke-WebRequest -Uri '" + bin_url + "' -OutFile 'v2vdb_next.exe'\"";
                         if (system(dl_cmd.c_str()) == 0) {
