@@ -127,18 +127,19 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Using database: " << db_file << std::endl;
 
-    // 1. Initialize Components
-    mydb::DiskManager disk_manager(db_file);
-    mydb::LogManager log_manager(&disk_manager);
-    mydb::RecoveryManager recovery_manager(&log_manager, &disk_manager);
-    
-    // 2. Run Recovery
-    // In Phase 7, we should probably run recovery first, then load catalog.
-    // Ideally Catalog is also recoverable via WAL, but keeping them separate for now.
-    recovery_manager.ARIES();
-    
-    // 3. Initialize Executor & Shell
-    mydb::Executor executor(&disk_manager);
+    try {
+        // 1. Initialize Components
+        mydb::DiskManager disk_manager(db_file);
+        mydb::LogManager log_manager(&disk_manager);
+        mydb::RecoveryManager recovery_manager(&log_manager, &disk_manager);
+        
+        // 2. Run Recovery
+        // In Phase 7, we should probably run recovery first, then load catalog.
+        // Ideally Catalog is also recoverable via WAL, but keeping them separate for now.
+        recovery_manager.ARIES();
+        
+        // 3. Initialize Executor & Shell
+        mydb::Executor executor(&disk_manager);
     executor.SetFiles(db_file, cat_file);
     
     // 4. Catalog Persistence
@@ -180,8 +181,14 @@ int main(int argc, char* argv[]) {
         std::cout << "\033[1;31mToo many failed attempts. Exiting.\033[0m" << std::endl;
     }
     
-    // 6. Save Catalog on Exit
-    catalog_manager.SaveCatalog();
+        // 6. Save Catalog on Exit
+        catalog_manager.SaveCatalog();
+    } catch (const std::exception& e) {
+        std::cerr << "\n\033[1;31m[FATAL ERROR]\033[0m " << e.what() << std::endl;
+        std::cerr << "Cannot initialize the database. Are you running this in a protected folder?" << std::endl;
+        std::cerr << "Try moving the executable to a user folder or use '--db <path>' to specify a valid database location.\n" << std::endl;
+        return 1;
+    }
     
     return 0;
 }

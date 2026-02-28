@@ -16,7 +16,7 @@ DiskManager::DiskManager(const std::string& db_file) : file_name_(db_file) {
         // re-open with original mode
         db_io_.open(file_name_, std::ios::binary | std::ios::in | std::ios::out);
         if (!db_io_.is_open()) {
-            throw std::runtime_error("can't open db file");
+            throw std::runtime_error("can't open or create db file: '" + file_name_ + "'. Please check directory permissions.");
         }
     }
 }
