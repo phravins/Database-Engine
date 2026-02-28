@@ -27,9 +27,13 @@ public:
             
             if (line.empty()) continue;
             
-            // Convert line to lower case for command matching
+            // Convert line to lower case for command matching and trim whitespace
             std::string cmd_lower = line;
             for (auto &c : cmd_lower) c = std::tolower(c);
+            // Trim leading spaces
+            cmd_lower.erase(0, cmd_lower.find_first_not_of(" \t\n\r\f\v"));
+            // Trim trailing spaces
+            cmd_lower.erase(cmd_lower.find_last_not_of(" \t\n\r\f\v") + 1);
             
             if (cmd_lower == "exit" || cmd_lower == "quit") {
                 break;
