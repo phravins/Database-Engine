@@ -16,10 +16,10 @@
 - **Interface**: Interactive SQL shell (`mydb>`) with case-insensitive parsing.
 
 ## Documentation
-- [**Full Database Documentation**](documentation.md) - Comprehensive guide to all features, architecture, and syntax.
+- [**Documentation**](documentation.md) - Comprehensive guide to all features, architecture, and syntax.
 - [**V2V Query Language Guide**](V2V_LANGUAGE.md) - Detailed syntax guide for the natural language interface.
 - [**Quick Command Cheatsheet**](DB_COMMANDS.md) - **<-- Look here for command examples!**
-- [**Developer & Contributor Guide**](developers_documentation.md) - Deep dive into the C++ codebase, headers, and how to contribute.
+- [**Developers Documentation**](developers_documentation.md) - Deep dive into the C++ codebase, headers, and how to contribute.
 
 ## Quick Install (No Compiler Required)
 
