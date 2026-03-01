@@ -116,7 +116,8 @@ chmod +x build-all.sh
 *   **src/cli**: Shell interface.
 
 
-_One minor note: Ensure you build the release as 64-bit (which is the default on modern compilers). Almost all Windows laptops today run on 64-bit Windows, so it will be perfectly compatible!_
+**Note:** 
+  _Ensure you build the release as 64-bit (which is the default on modern compilers). Almost all Windows laptops today run on 64-bit Windows, so it     will be perfectly compatible!_
 
 
 
