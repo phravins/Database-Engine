@@ -4,7 +4,7 @@ Welcome to the internal engineering guide for the **V2V Database Engine**! This 
 
 ---
 
-## 🏗️ System Architecture Overview
+## System Architecture Overview
 
 The V2V database is an educational, disk-backed relational database written entirely from scratch in **C++17**. It avoids using standard libraries for storage (like SQLite) and implements a 4-tier relational database architecture natively:
 
@@ -15,7 +15,7 @@ The V2V database is an educational, disk-backed relational database written enti
 
 ---
 
-## 📂 Core Concepts & Header Files Explained
+## Core Concepts & Header Files Explained
 
 To contribute to V2VDB, you must understand the core C++ header files. Here is a breakdown of the most critical `.h` files and how they interact.
 
@@ -128,7 +128,7 @@ void HandleSelect(const Statement& stmt) {
 
 ---
 
-## 🛠️ How to Contribute & Code
+## How to Contribute & Code
 
 V2VDB relies heavily on modern C++17 paradigms.
 
@@ -159,7 +159,7 @@ Imagine you want to add a new command: `TRUNCATE TABLE <name>`.
 
 ---
 
-## 🐛 Debugging Guide
+## Debugging Guide
 
 When working with low-level page modifications, **segmentation faults** are common if pointers stray past the 4096-byte boundary.
 
