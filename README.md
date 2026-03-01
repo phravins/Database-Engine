@@ -117,7 +117,7 @@ chmod +x build-all.sh
 
 
 **Note:** 
-  _Ensure you build the release as 64-bit (which is the default on modern compilers). Almost all Windows laptops today run on 64-bit Windows, so it     will be perfectly compatible!_
+  _Ensure you build the release as 64-bit (which is the default on modern compilers). Almost all Windows OS Works on 64-bit Windows, so it     will be perfectly compatible!_
 
 
 
