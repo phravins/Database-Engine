@@ -115,5 +115,10 @@ chmod +x build-all.sh
 *   **src/recovery**: LogManager and ARIES Redo logic.
 *   **src/cli**: Shell interface.
 
+
+_One minor note: Ensure you build the release as 64-bit (which is the default on modern compilers). Almost all Windows laptops today run on 64-bit Windows, so it will be perfectly compatible!_
+
+
+
 _The V2V database system is implemented under the project ID - (Project CPP)_
 
