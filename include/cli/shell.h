@@ -83,7 +83,7 @@ private:
         std::cout << "   \\ \\/ /    / /   \\ \\/ /  " << std::endl;
         std::cout << "    \\__/    /___|   \\__/   " << std::endl;
         std::cout << "\033[0m" << std::endl;
-        std::cout << "V2V Database (mydb) v1.0.6" << std::endl;
+        std::cout << "V2V Database (mydb) v1.0.7" << std::endl;
         std::cout << "Type 'exit' to quit." << std::endl;
         std::cout << "-----------------------------------" << std::endl;
     }

@@ -92,9 +92,12 @@ set TEMP_FILE=%TEMP%\v2vdb.exe
 where curl >nul 2>&1
 if %errorlevel% equ 0 (
     curl -L -f "%URL%" -o "%TEMP_FILE%"
-) else (
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%URL%' -OutFile '%TEMP_FILE%'"
+    goto :DOWNLOAD_DONE
 )
+
+powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%URL%' -OutFile '%TEMP_FILE%'"
+
+:DOWNLOAD_DONE
 
 if not exist "%TEMP_FILE%" (
     echo ERROR: Download failed!
@@ -121,10 +124,10 @@ copy /Y "%TEMP_FILE%" "%INSTALL_DIR%\v2vdb.exe"
 echo [4/4] Adding to PATH...
 set "PATH_TO_ADD=%INSTALL_DIR%"
 for /f "tokens=2,*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path') do set "KEY_VALUE=%%B"
-echo %KEY_VALUE% | findstr /C:"%PATH_TO_ADD%" >nul 2>&1
+echo "%KEY_VALUE%" | findstr /C:"%PATH_TO_ADD%" >nul 2>&1
 if errorlevel 1 (
     setx /M PATH "%KEY_VALUE%;%PATH_TO_ADD%"
-    echo Added %PATH_TO_ADD% to PATH.
+    echo Added "%PATH_TO_ADD%" to PATH.
 ) else (
     echo Path already exists.
 )
