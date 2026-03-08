@@ -90,11 +90,12 @@ set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/latest/download/v2vdb-w
 set TEMP_FILE=%TEMP%\v2vdb.exe
 
 where curl >nul 2>&1
-if %errorlevel% equ 0 (
-    curl -L -f "%URL%" -o "%TEMP_FILE%"
-    goto :DOWNLOAD_DONE
-)
+if errorlevel 1 goto :USE_POWERSHELL
 
+curl -L -f "%URL%" -o "%TEMP_FILE%"
+goto :DOWNLOAD_DONE
+
+:USE_POWERSHELL
 powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%URL%' -OutFile '%TEMP_FILE%'"
 
 :DOWNLOAD_DONE
