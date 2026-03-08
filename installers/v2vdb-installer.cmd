@@ -79,11 +79,12 @@ set INSTALL_DIR=%ProgramFiles%\v2vdb
 
 REM Check admin
 net session >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ERROR: Run as Administrator!
-    pause
-    exit /b 1
-)
+if %errorlevel% equ 0 goto :ADMIN_OK
+echo ERROR: Run as Administrator!
+pause
+exit /b 1
+
+:ADMIN_OK
 
 echo [1/4] Downloading v2vdb...
 set URL=https://github.com/%GITHUB_USER%/%REPO%/releases/latest/download/v2vdb-windows.exe
@@ -100,21 +101,23 @@ powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.Security
 
 :DOWNLOAD_DONE
 
-if not exist "%TEMP_FILE%" (
-    echo ERROR: Download failed!
-    pause
-    exit /b 1
-)
+if exist "%TEMP_FILE%" goto :TEMP_FILE_OK
+echo ERROR: Download failed!
+pause
+exit /b 1
+
+:TEMP_FILE_OK
 
 for %%I in ("%TEMP_FILE%") do set SIZE=%%~zI
 if "%SIZE%"=="" set SIZE=0
-if %SIZE% LSS 1024 (
-    echo ERROR: Downloaded file is too small (%SIZE% bytes). Likely a 404 error.
-    echo Please ensure release v%VERSION% exists on GitHub with 'v2vdb-windows.exe' asset.
-    del "%TEMP_FILE%"
-    pause
-    exit /b 1
-)
+if %SIZE% GEQ 1024 goto :SIZE_OK
+echo ERROR: Downloaded file is too small (%SIZE% bytes). Likely a 404 error.
+echo Please ensure release v%VERSION% exists on GitHub with 'v2vdb-windows.exe' asset.
+del "%TEMP_FILE%"
+pause
+exit /b 1
+
+:SIZE_OK
 
 echo [2/4] Creating installation directory...
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
@@ -126,12 +129,15 @@ echo [4/4] Adding to PATH...
 set "PATH_TO_ADD=%INSTALL_DIR%"
 for /f "tokens=2,*" %%A in ('reg query "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment" /v Path') do set "KEY_VALUE=%%B"
 echo "%KEY_VALUE%" | findstr /C:"%PATH_TO_ADD%" >nul 2>&1
-if errorlevel 1 (
-    setx /M PATH "%KEY_VALUE%;%PATH_TO_ADD%"
-    echo Added "%PATH_TO_ADD%" to PATH.
-) else (
-    echo Path already exists.
-)
+if errorlevel 1 goto :ADD_PATH
+echo Path already exists.
+goto :PATH_DONE
+
+:ADD_PATH
+setx /M PATH "%KEY_VALUE%;%PATH_TO_ADD%"
+echo Added "%PATH_TO_ADD%" to PATH.
+
+:PATH_DONE
 
 echo.
 echo ========================================
