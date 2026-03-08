@@ -29,7 +29,8 @@ enum class StatementType {
     RELOAD,
     VERSION,
     CONNECT,
-    DROP
+    DROP,
+    AUTOUPDATE
 };
 
 struct Statement {
@@ -300,6 +301,10 @@ public:
                 ss >> stmt.table_name;
                 SanitizeIdentifier(stmt.table_name);
             }
+        }
+        // 19. AUTOUPDATE
+        else if (cmd == "AUTOUPDATE") {
+            stmt.type = StatementType::AUTOUPDATE;
         }
         
         return stmt;

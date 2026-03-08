@@ -69,6 +69,8 @@ public:
             HandleConnect(stmt);
         } else if (stmt.type == StatementType::DROP) {
             HandleDrop(stmt);
+        } else if (stmt.type == StatementType::AUTOUPDATE) {
+            HandleAutoupdate(stmt);
         } else {
              if (stmt.type != StatementType::INVALID) {
                 std::cout << "\033[1;31mCommand parsed but not implemented in Executor.\033[0m" << std::endl;
@@ -528,6 +530,7 @@ private:
         std::cout << "  RELOAD                       - Reload catalog from disk" << std::endl;
         std::cout << "  CONNECT <basename>           - Switch database" << std::endl;
         std::cout << "  VERSION                      - Show version info" << std::endl;
+        std::cout << "  AUTOUPDATE                   - Pull latest engine updates" << std::endl;
         std::cout << "  EXIT / QUIT                  - Exit shell" << std::endl;
         std::cout << "-----------------------------------" << std::endl;
     }
@@ -616,6 +619,16 @@ private:
         tables_.erase(stmt.table_name);
         schemas_.erase(stmt.table_name);
         std::cout << "\033[1;32mTable " << stmt.table_name << " dropped.\033[0m" << std::endl;
+    }
+
+    void HandleAutoupdate(const Statement& stmt) {
+        std::cout << "\033[1;36mFetching latest updates from repository...\033[0m" << std::endl;
+        int result = std::system("git pull origin main");
+        if (result == 0) {
+            std::cout << "\033[1;32mUpdate successful. Please rebuild and restart the database engine.\033[0m" << std::endl;
+        } else {
+            std::cout << "\033[1;31mUpdate failed. Please check your network connection or git configuration.\033[0m" << std::endl;
+        }
     }
 
     DiskManager* disk_manager_;
