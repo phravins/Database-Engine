@@ -11,6 +11,9 @@
 #include <chrono>
 #include <ctime>
 #include <algorithm>
+#include <cstdio>
+#include <memory>
+#include <array>
 
 namespace mydb {
 
@@ -603,7 +606,7 @@ private:
 
     void HandleVersion(const Statement& stmt) {
         std::cout << "V2V Database Engine" << std::endl;
-        std::cout << "Version: 1.0.6 (Beta)" << std::endl;
+        std::cout << "Version: 1.0.7" << std::endl;
         std::cout << "Built: " << __DATE__ << " " << __TIME__ << std::endl;
     }
 
@@ -621,13 +624,79 @@ private:
         std::cout << "\033[1;32mTable " << stmt.table_name << " dropped.\033[0m" << std::endl;
     }
 
+    // Helper to run OS command and get standard output
+    std::string ExecCommand(const char* cmd) {
+        std::array<char, 128> buffer;
+        std::string result;
+#ifdef _WIN32
+        std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(cmd, "r"), _pclose);
+#else
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
+#endif
+        if (!pipe) return "";
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+            result += buffer.data();
+        }
+        return result;
+    }
+
     void HandleAutoupdate(const Statement& stmt) {
-        std::cout << "\033[1;36mFetching latest updates from repository...\033[0m" << std::endl;
-        int result = std::system("git pull origin main");
-        if (result == 0) {
-            std::cout << "\033[1;32mUpdate successful. Please rebuild and restart the database engine.\033[0m" << std::endl;
+        std::string current_version = "v1.0.7";
+        std::cout << "\033[1;36mChecking for updates (Current: " << current_version << ")...\033[0m" << std::endl;
+        
+        std::string cmd;
+#ifdef _WIN32
+        cmd = "powershell -Command \"(Invoke-RestMethod -Uri 'https://api.github.com/repos/phravins/Database-Engine/releases/latest' -UseBasicParsing).tag_name\"";
+#else
+        cmd = "curl -sL https://api.github.com/repos/phravins/Database-Engine/releases/latest | grep '\"tag_name\":' | head -n 1 | cut -d'\"' -f4";
+#endif
+        
+        std::string latest_version = ExecCommand(cmd.c_str());
+        
+        if (!latest_version.empty()) {
+            latest_version.erase(std::remove_if(latest_version.begin(), latest_version.end(), [](char c){ return std::isspace(c); }), latest_version.end());
+        }
+        
+        if (latest_version.empty()) {
+            std::cout << "\033[1;31mFailed to check for updates. Check your network or GitHub API limits.\033[0m" << std::endl;
+            return;
+        }
+
+        std::string cur_lower = current_version;
+        std::string lat_lower = latest_version;
+        std::transform(cur_lower.begin(), cur_lower.end(), cur_lower.begin(), ::tolower);
+        std::transform(lat_lower.begin(), lat_lower.end(), lat_lower.begin(), ::tolower);
+
+        if (lat_lower == cur_lower) {
+            std::cout << "\033[1;32mYou are already running the latest version (" << current_version << ").\033[0m" << std::endl;
+            return;
+        }
+
+        std::cout << "\033[1;33mA new version is available: " << latest_version << "\033[0m" << std::endl;
+        std::cout << "Do you want to update now? (\033[1;32mokay\033[0m/\033[1;31mdeny\033[0m): ";
+        
+        std::string answer;
+        if (!(std::cin >> answer)) return; // Check for EOF
+        std::transform(answer.begin(), answer.end(), answer.begin(), ::tolower);
+
+        if (answer == "okay" || answer == "y" || answer == "yes") {
+            std::cout << "\033[1;36mDownloading and installing update...\033[0m" << std::endl;
+#ifdef _WIN32
+            int res = std::system("powershell -Command \"[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iwr -useb https://raw.githubusercontent.com/phravins/Database-Engine/main/installers/v2vdb-installer.cmd -OutFile install.bat; start install.bat\"");
+            if (res == 0) {
+                std::cout << "\033[1;32mUpdate script launched in a new window. Please close this database engine to allow the installer to overwrite it.\033[0m" << std::endl;
+            }
+#else
+            int res = std::system("curl -s https://raw.githubusercontent.com/phravins/Database-Engine/main/installers/install-unix.sh | sudo bash");
+            if (res == 0) {
+                std::cout << "\033[1;32mUpdate successful. Please restart the database engine.\033[0m" << std::endl;
+            }
+#endif
+            if (res != 0) {
+                std::cout << "\033[1;31mUpdate failed with error code: " << res << "\033[0m" << std::endl;
+            }
         } else {
-            std::cout << "\033[1;31mUpdate failed. Please check your network connection or git configuration.\033[0m" << std::endl;
+            std::cout << "Update canceled by user." << std::endl;
         }
     }
 
