@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <memory>
 #include <array>
+#include <cmath>
 
 namespace mydb {
 
@@ -141,6 +142,19 @@ private:
                           return;
                      }
                      values.emplace_back(val);
+                 } else if (col.GetType() == TypeID::VECTOR) {
+                     // Parse vector literal like [1.0, 2.5]
+                     std::string val_str = stmt.values[i];
+                     if (!val_str.empty() && val_str.front() == '[') val_str = val_str.substr(1);
+                     if (!val_str.empty() && val_str.back() == ']') val_str.pop_back();
+                     
+                     std::vector<float> vec;
+                     std::stringstream vss(val_str);
+                     std::string token;
+                     while (std::getline(vss, token, ',')) {
+                          vec.push_back(std::stof(token));
+                     }
+                     values.emplace_back(vec);
                  } else {
                      values.emplace_back(stmt.values[i]);
                  }
@@ -221,16 +235,50 @@ private:
                 }
             }
             if (order_col_idx != -1) {
-                std::sort(filtered_tuples.begin(), filtered_tuples.end(), 
-                          [order_col_idx, order_col_type](const Tuple& a, const Tuple& b) {
-                              const Value& valA = a.GetValue(order_col_idx);
-                              const Value& valB = b.GetValue(order_col_idx);
-                              if (order_col_type == TypeID::INTEGER) {
-                                  return valA.GetAsInteger() < valB.GetAsInteger();
-                              } else {
-                                  return valA.GetAsString() < valB.GetAsString();
-                              }
-                          });
+                if (stmt.order_by_vector_dist && order_col_type == TypeID::VECTOR) {
+                    // Parse literal target vector
+                    std::string val_str = stmt.order_by_vector_literal;
+                    if (!val_str.empty() && val_str.front() == '[') val_str = val_str.substr(1);
+                    if (!val_str.empty() && val_str.back() == ']') val_str.pop_back();
+                    std::vector<float> target_vec;
+                    std::stringstream vss(val_str);
+                    std::string token;
+                    while (std::getline(vss, token, ',')) {
+                        target_vec.push_back(std::stof(token));
+                    }
+                    
+                    // Sort by Euclidean distance
+                    std::sort(filtered_tuples.begin(), filtered_tuples.end(), 
+                              [order_col_idx, &target_vec](const Tuple& a, const Tuple& b) {
+                                  const auto& vecA = a.GetValue(order_col_idx).GetAsVector();
+                                  const auto& vecB = b.GetValue(order_col_idx).GetAsVector();
+                                  
+                                  float distA = 0.0f, distB = 0.0f;
+                                  size_t lenA = std::min(vecA.size(), target_vec.size());
+                                  for (size_t i = 0; i < lenA; ++i) {
+                                      float d = vecA[i] - target_vec[i];
+                                      distA += d * d;
+                                  }
+                                  size_t lenB = std::min(vecB.size(), target_vec.size());
+                                  for (size_t i = 0; i < lenB; ++i) {
+                                      float d = vecB[i] - target_vec[i];
+                                      distB += d * d;
+                                  }
+                                  
+                                  return distA < distB;
+                              });
+                } else {
+                    std::sort(filtered_tuples.begin(), filtered_tuples.end(), 
+                              [order_col_idx, order_col_type](const Tuple& a, const Tuple& b) {
+                                  const Value& valA = a.GetValue(order_col_idx);
+                                  const Value& valB = b.GetValue(order_col_idx);
+                                  if (order_col_type == TypeID::INTEGER) {
+                                      return valA.GetAsInteger() < valB.GetAsInteger();
+                                  } else {
+                                      return valA.GetAsString() < valB.GetAsString();
+                                  }
+                              });
+                }
             } else {
                  std::cout << "\033[1;31mWarning: ORDER BY column '" << stmt.order_by_column << "' not found.\033[0m" << std::endl;
             }
@@ -484,7 +532,10 @@ private:
         std::cout << "Table: \033[1;33m" << table_name << "\033[0m" << std::endl;
         std::cout << "Columns: " << schema.GetColumnCount() << std::endl;
         for (const auto& col : schema.GetColumns()) {
-            std::string type_str = (col.GetType() == TypeID::INTEGER) ? "INT" : "VARCHAR";
+            std::string type_str = "VARCHAR";
+            if (col.GetType() == TypeID::INTEGER) type_str = "INT";
+            else if (col.GetType() == TypeID::VECTOR) type_str = "VECTOR";
+            
             std::cout << " - " << std::left << std::setw(15) << col.GetName() 
                       << " type: " << std::setw(10) << type_str 
                       << " offset: " << col.GetOffset() << std::endl;
@@ -606,7 +657,7 @@ private:
 
     void HandleVersion(const Statement& stmt) {
         std::cout << "V2V Database Engine" << std::endl;
-        std::cout << "Version: 1.0.7" << std::endl;
+        std::cout << "Version: 1.0.8" << std::endl;
         std::cout << "Built: " << __DATE__ << " " << __TIME__ << std::endl;
     }
 
@@ -641,7 +692,7 @@ private:
     }
 
     void HandleAutoupdate(const Statement& stmt) {
-        std::string current_version = "v1.0.7";
+        std::string current_version = "v1.0.8";
         std::cout << "\033[1;36mChecking for updates (Current: " << current_version << ")...\033[0m" << std::endl;
         
         std::string cmd;

@@ -8,8 +8,10 @@
 ## Features
 
 - **Storage Engine**: Custom `DiskManager` using 4KB pages.
-- **Table System**: Heap file organization supporting variable-length tuples (`INT`, `VARCHAR`).
+- **Table System**: Heap file organization supporting variable-length tuples (`INT`, `VARCHAR`, `VECTOR`).
+- **Vector Database**: First-class support for storing float arrays (`[1.0, 2.5]`) and sorting by Euclidean distance (`ORDER BY VECTOR_DIST(...)`).
 - **Indexing**: B+ Tree index for efficient O(log n) lookups.
+- **Server Mode**: Run as a REST API (`--server`) to easily connect with tools like **nginx**, web apps, or `curl`.
 - **Crash Recovery**: Write-Ahead Logging (WAL) with ARIES-style Redo recovery.
 - **Persistence**: **Human-readable catalog** (`.cat`) for easy inspection.
 - **Diagnostics**: Built-in `DBINFO`, `DESCRIBE`, and `SYSTEM` status commands.
@@ -57,8 +59,10 @@ choco upgrade v2vdb
 After installation, simply type:
 After installation, simply type:
 ```bash
-v2vdb [--db path.db] [--cat path.cat] [legacy_basename]
+v2vdb [--db path.db] [--cat path.cat] [--server] [--port 8080] [--api-key my-secret] [legacy_basename]
 ```
+
+### 1. Interactive Shell Mode (Default)
 
 **Default Credentials:**
 - Username: `admin`
@@ -84,11 +88,40 @@ v2vdb [--db path.db] [--cat path.cat] [legacy_basename]
     -- Query data
     SELECT * FROM users
     
+    -- Create a table with a Vector column
+    CREATE TABLE movies id INT, title VARCHAR, embedding VECTOR
+
+    -- Insert vectors inline
+    INSERT INTO movies VALUES 1, 'Inception', [0.5, 0.8, 0.2]
+    
+    -- Query by Vector Distance (KNN Search)
+    SELECT * FROM movies ORDER BY VECTOR_DIST(embedding, [0.4, 0.9, 0.1])
+    
     -- Exit
     exit
     ```
 
-2.  **Persistence**:
+### 2. HTTP Server Mode (for Web/Nginx)
+You can run V2VDB as an HTTP server to receive SQL queries via REST API, perfect for backing web applications or running behind an Nginx reverse proxy.
+
+```bash
+v2vdb --server --port 8080 --api-key "my_secret_key"
+```
+
+Then query it using `curl` or any HTTP client:
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# Run a query
+curl -X POST http://localhost:8080/query \
+     -H "X-Api-Key: my_secret_key" \
+     -H "Content-Type: application/json" \
+     -d '{"sql": "SELECT * FROM users"}'
+```
+See the included `nginx.conf.example` file for a reverse proxy template.
+
+### 3. Persistence
     - Data is stored in `mydb.db` (binary pages).
     - Logs are stored in `wal.log` (write-ahead log).
     - Schemas are stored in `mydb.cat` (catalog).

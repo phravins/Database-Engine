@@ -18,8 +18,11 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(mydb ${SOURCES})
 
 # Explicit static link options for the target
-if(WIN32 AND MINGW)
-    target_link_options(mydb PRIVATE "-static" "-static-libgcc" "-static-libstdc++")
+if(WIN32)
+    if(MINGW)
+        target_link_options(mydb PRIVATE "-static" "-static-libgcc" "-static-libstdc++")
+    endif()
+    target_link_libraries(mydb ws2_32)
 endif()
 
 # Install

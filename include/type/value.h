@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include "type/type_id.h"
 
 namespace mydb {
@@ -11,8 +12,10 @@ namespace mydb {
 /**
  * Value is a wrapper for data. It holds the type and the actual data.
  * For simplicity in this phase:
+ * For simplicity in this phase:
  *  - INTEGER: 4-byte int
  *  - VARCHAR: string (length + chars)
+ *  - VECTOR: array of floats (count + floats)
  */
 class Value {
 public:
@@ -30,6 +33,11 @@ public:
         str_ = s;
     }
 
+    // Vector constructor
+    explicit Value(const std::vector<float>& vec) : type_id_(TypeID::VECTOR) {
+        vec_ = vec;
+    }
+
     TypeID GetTypeId() const { return type_id_; }
 
     int32_t GetAsInteger() const {
@@ -37,7 +45,21 @@ public:
     }
 
     std::string GetAsString() const {
+        if (type_id_ == TypeID::VECTOR) {
+            std::stringstream ss;
+            ss << "[";
+            for (size_t i = 0; i < vec_.size(); ++i) {
+                ss << vec_[i];
+                if (i < vec_.size() - 1) ss << ", ";
+            }
+            ss << "]";
+            return ss.str();
+        }
         return str_;
+    }
+
+    const std::vector<float>& GetAsVector() const {
+        return vec_;
     }
 
     // Serialize to a buffer (for disk storage)
@@ -51,6 +73,13 @@ public:
             std::memcpy(dest, &size, sizeof(uint32_t));
             std::memcpy(dest + sizeof(uint32_t), str_.c_str(), size);
             return sizeof(uint32_t) + size;
+        } else if (type_id_ == TypeID::VECTOR) {
+            uint32_t count = vec_.size();
+            std::memcpy(dest, &count, sizeof(uint32_t));
+            if (count > 0) {
+                std::memcpy(dest + sizeof(uint32_t), vec_.data(), count * sizeof(float));
+            }
+            return sizeof(uint32_t) + (count * sizeof(float));
         }
         return 0;
     }
@@ -67,6 +96,14 @@ public:
             std::memcpy(&size, src, sizeof(uint32_t));
             std::string s(src + sizeof(uint32_t), size);
             return Value(s);
+        } else if (type_id == TypeID::VECTOR) {
+            uint32_t count;
+            std::memcpy(&count, src, sizeof(uint32_t));
+            std::vector<float> vec(count);
+            if (count > 0) {
+                std::memcpy(vec.data(), src + sizeof(uint32_t), count * sizeof(float));
+            }
+            return Value(vec);
         }
         return Value();
     }
@@ -77,6 +114,8 @@ public:
             return sizeof(int32_t);
         } else if (type_id_ == TypeID::VARCHAR) {
             return sizeof(uint32_t) + str_.length();
+        } else if (type_id_ == TypeID::VECTOR) {
+            return sizeof(uint32_t) + (vec_.size() * sizeof(float));
         }
         return 0;
     }
@@ -86,6 +125,7 @@ public:
         if (type_id_ != other.type_id_) return false;
         if (type_id_ == TypeID::INTEGER) return value_.integer_ == other.value_.integer_;
         if (type_id_ == TypeID::VARCHAR) return str_ == other.str_;
+        if (type_id_ == TypeID::VECTOR) return vec_ == other.vec_;
         return true;
     }
 
@@ -97,6 +137,7 @@ private:
     // Simplified storage for varchar (not optimized union yet)
     uint32_t len_ = 0;
     std::string str_;
+    std::vector<float> vec_;
 };
 
 } // namespace mydb

@@ -1,11 +1,12 @@
 {
-  "latest_version": "1.0.7",
-  "release_date": "2026-02-28",
+  "latest_version": "1.0.8",
+  "release_date": "2026-03-10",
   "download_url": "https://github.com/phravins/Database-Engine/releases/latest",
   "download_url_win": "https://github.com/phravins/Database-Engine/releases/latest/download/v2vdb-windows.exe",
   "changelog": [
-    "Initial Release",
-    "Pre-built binaries support"
+    "Added Vector DB native support",
+    "Added HTTP Server mode daemon",
+    "Added KNN Euclidean Distance Sorting"
   ],
   "critical_update": false
 }

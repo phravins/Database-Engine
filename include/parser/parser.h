@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 namespace mydb {
 
@@ -55,6 +56,10 @@ struct Statement {
     // For UPDATE (SET col = val)
     std::string update_column;
     std::string update_value;
+    
+    // For VECTOR_DIST
+    bool order_by_vector_dist = false;
+    std::string order_by_vector_literal;
 };
 
 class Parser {
@@ -99,6 +104,7 @@ public:
 
                         if (type_up == "STRING" || type_up == "TEXT" || type_up == "VARCHAR") type = "VARCHAR";
                         else if (type_up == "INT" || type_up == "INTEGER" || type_up == "NUMBER") type = "INT";
+                        else if (type_up == "VECTOR") type = "VECTOR";
                         else if (type == ",") continue; 
                         
                         stmt.columns.emplace_back(col_name, type);
@@ -122,9 +128,20 @@ public:
                      if (val_cmd == "VALUES" || word == "(") continue;
                      if (word == ")") break;
                      
+                     // Handle vector literals starting with [
+                     if (word.front() == '[') {
+                         while (word.find(']') == std::string::npos && !ss.eof()) {
+                             std::string next_word;
+                             ss >> next_word;
+                             word += " " + next_word;
+                         }
+                     }
+                     
                      if (word.back() == ',') word.pop_back();
                      CleanValue(word);
-                     stmt.values.push_back(word);
+                     if (!word.empty()) {
+                         stmt.values.push_back(word);
+                     }
                  }
              }
         } 
@@ -157,7 +174,10 @@ public:
                     SanitizeIdentifier(stmt.table_name);
                 }
             }
-            ParseWhereClause(ss, stmt);
+            // Eat remaining part of SQL for robust Where/Order parsing
+            std::string remainder;
+            std::getline(ss, remainder);
+            ParseWhereClause(remainder, stmt);
         }
         // 4. SHOW (Legacy/New)
         else if (cmd == "SHOW") {
@@ -176,7 +196,9 @@ public:
                 stmt.table_name = word;
                 SanitizeIdentifier(stmt.table_name);
             }
-            ParseWhereClause(ss, stmt);
+            std::string remainder;
+            std::getline(ss, remainder);
+            ParseWhereClause(remainder, stmt);
         }
         // 5. EXPORT
         else if (cmd == "EXPORT") {
@@ -201,7 +223,9 @@ public:
             if (word == "FROM" || word == "from") ss >> stmt.table_name;
             else stmt.table_name = word;
             SanitizeIdentifier(stmt.table_name);
-            ParseWhereClause(ss, stmt);
+            std::string remainder;
+            std::getline(ss, remainder);
+            ParseWhereClause(remainder, stmt);
         }
         // 7b. CLEAR
         else if (cmd == "CLEAR" || cmd == "TRUNCATE") {
@@ -239,7 +263,9 @@ public:
                 ss >> word; // =
                 ss >> stmt.update_value;
                 CleanValue(stmt.update_value);
-                ParseWhereClause(ss, stmt);
+                std::string remainder;
+                std::getline(ss, remainder);
+                ParseWhereClause(remainder, stmt);
             }
         }
         // 9. DESCRIBE
@@ -327,33 +353,68 @@ private:
     }
 
     static void CleanValue(std::string& val) {
+        if (val.empty()) return;
         if (val.front() == '"' || val.front() == '\'') val = val.substr(1);
-        if (val.back() == '"' || val.back() == '\'') val.pop_back();
-        if (val.back() == ';') val.pop_back();
+        if (!val.empty() && (val.back() == '"' || val.back() == '\'')) val.pop_back();
+        if (!val.empty() && val.back() == ';') val.pop_back();
     }
 
-    static void ParseWhereClause(std::stringstream& ss, Statement& stmt) {
-        std::string word;
-        while (ss >> word) {
-            std::string sub = word;
-            for (auto &c : sub) c = std::toupper(c);
+    static void ParseWhereClause(const std::string& clause, Statement& stmt) {
+        if (clause.empty()) return;
+        
+        // We'll process WHERE and ORDER BY
+        std::string upper_clause = clause;
+        std::transform(upper_clause.begin(), upper_clause.end(), upper_clause.begin(), ::toupper);
+        
+        size_t where_pos = upper_clause.find("WHERE ");
+        size_t order_pos = upper_clause.find("ORDER BY ");
+        
+        if (where_pos != std::string::npos) {
+            std::string where_part = clause.substr(where_pos + 6);
+            if (order_pos != std::string::npos && order_pos > where_pos) {
+                where_part = clause.substr(where_pos + 6, order_pos - (where_pos + 6));
+            }
+            std::stringstream wss(where_part);
+            wss >> stmt.where_column;
+            SanitizeIdentifier(stmt.where_column);
+            wss >> stmt.where_op;
+            if (stmt.where_op == "=" || stmt.where_op == "!=") {
+                wss >> stmt.where_value;
+                CleanValue(stmt.where_value);
+            }
+        }
+        
+        if (order_pos != std::string::npos) {
+            std::string order_part = clause.substr(order_pos + 9);
+            // Handle vector_dist(col, [vals])
+            std::string upper_order = order_part;
+            std::transform(upper_order.begin(), upper_order.end(), upper_order.begin(), ::toupper);
             
-            if (sub == "WHERE") {
-                ss >> stmt.where_column;
-                SanitizeIdentifier(stmt.where_column);
-                ss >> stmt.where_op; // "=" or "!="
-                if (stmt.where_op == "=" || stmt.where_op == "!=") {
-                   ss >> stmt.where_value;
-                   CleanValue(stmt.where_value);
+            size_t dist_pos = upper_order.find("VECTOR_DIST");
+            if (dist_pos != std::string::npos) {
+                size_t open_paren = order_part.find('(', dist_pos);
+                size_t close_paren = order_part.find(')', dist_pos);
+                if (open_paren != std::string::npos && close_paren != std::string::npos) {
+                    std::string args = order_part.substr(open_paren + 1, close_paren - open_paren - 1);
+                    size_t comma = args.find(',');
+                    if (comma != std::string::npos) {
+                        stmt.order_by_vector_dist = true;
+                        stmt.order_by_column = args.substr(0, comma);
+                        // trim spaces
+                        stmt.order_by_column.erase(0, stmt.order_by_column.find_first_not_of(" \t\r\n"));
+                        stmt.order_by_column.erase(stmt.order_by_column.find_last_not_of(" \t\r\n") + 1);
+                        SanitizeIdentifier(stmt.order_by_column);
+                        
+                        stmt.order_by_vector_literal = args.substr(comma + 1);
+                        // trim spaces
+                        stmt.order_by_vector_literal.erase(0, stmt.order_by_vector_literal.find_first_not_of(" \t\r\n"));
+                        stmt.order_by_vector_literal.erase(stmt.order_by_vector_literal.find_last_not_of(" \t\r\n") + 1);
+                    }
                 }
-            } else if (sub == "ORDER") {
-                ss >> word; // Expected "BY"
-                std::string by = word;
-                for (auto &c : by) c = std::toupper(c);
-                if (by == "BY") {
-                    ss >> stmt.order_by_column;
-                    SanitizeIdentifier(stmt.order_by_column);
-                }
+            } else {
+                std::stringstream oss(order_part);
+                oss >> stmt.order_by_column;
+                SanitizeIdentifier(stmt.order_by_column);
             }
         }
     }

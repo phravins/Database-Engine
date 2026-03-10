@@ -10,6 +10,7 @@
 #include "recovery/recovery_manager.h"
 #include "catalog/catalog_manager.h"
 #include "cli/shell.h"
+#include "server/http_server.h"
 
 namespace mydb {
 
@@ -17,7 +18,7 @@ namespace mydb {
 void checkAndNotifyUpdate(bool force = false) {
     std::string remote_url = "https://raw.githubusercontent.com/phravins/Database-Engine/main/version.json";
     std::string temp_file = "version_check.json";
-    std::string current_version = "1.0.7"; // Updated version to 1.0.7
+    std::string current_version = "1.0.8"; // Updated version to 1.0.8
 
     // Download version file
 #ifdef _WIN32
@@ -93,10 +94,13 @@ void checkAndNotifyUpdate(bool force = false) {
 void printHelp(const char* prog_name) {
     std::cout << "Usage: " << prog_name << " [options] [basename]" << std::endl;
     std::cout << "Options:" << std::endl;
-    std::cout << "  --db <file>    Path to database file (default: v2v-1.db)" << std::endl;
-    std::cout << "  --cat <file>   Path to catalog file (default: v2v-1.cat)" << std::endl;
-    std::cout << "  --help, -h     Show this help message" << std::endl;
-    std::cout << "  [basename]     Legacy support: <basename>.db and <basename>.cat" << std::endl;
+    std::cout << "  --db <file>      Path to database file (default: v2v-1.db)" << std::endl;
+    std::cout << "  --cat <file>     Path to catalog file (default: v2v-1.cat)" << std::endl;
+    std::cout << "  --server         Start in detached HTTP server mode" << std::endl;
+    std::cout << "  --port <num>     Port for server mode (default: 8080)" << std::endl;
+    std::cout << "  --api-key <key>  Require X-Api-Key bearer header for server mode" << std::endl;
+    std::cout << "  --help, -h       Show this help message" << std::endl;
+    std::cout << "  [basename]       Legacy support: <basename>.db and <basename>.cat" << std::endl;
 }
 
 } // namespace mydb
@@ -105,6 +109,9 @@ int main(int argc, char* argv[]) {
     // 0. Parse Arguments
     std::string db_file = "v2v-1.db";
     std::string cat_file = "v2v-1.cat";
+    bool server_mode = false;
+    int server_port = 8080;
+    std::string api_key;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -112,6 +119,12 @@ int main(int argc, char* argv[]) {
             db_file = argv[++i];
         } else if (arg == "--cat" && i + 1 < argc) {
             cat_file = argv[++i];
+        } else if (arg == "--server") {
+            server_mode = true;
+        } else if (arg == "--port" && i + 1 < argc) {
+            server_port = std::stoi(argv[++i]);
+        } else if (arg == "--api-key" && i + 1 < argc) {
+            api_key = argv[++i];
         } else if (arg == "--help" || arg == "-h") {
             mydb::printHelp(argv[0]);
             return 0;
@@ -148,37 +161,46 @@ int main(int argc, char* argv[]) {
     
     mydb::Shell shell(&executor);
     
-    // 5. Run Shell
-    // Security: Simple Login
-    std::string username, password;
-    std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
-    std::cout << "       \033[1;35mV2V Database Security\033[0m       " << std::endl;
-    std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
-    
-    // Simple 3-try mechanism
-    bool authenticated = false;
-    for (int i = 0; i < 3; ++i) {
-        std::cout << "Username: ";
-        std::cin >> username;
-        std::cout << "Password: ";
-        std::cin >> password;
-        
-        // Clear newline from buffer
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-
-        if (username == "admin" && password == "admin") {
-            authenticated = true;
-            std::cout << "\033[1;32mLogin successful.\033[0m" << std::endl;
-            break;
-        } else {
-             std::cout << "\033[1;31mInvalid credentials. Try again.\033[0m" << std::endl;
+    // 5. Run Shell or Server
+    if (server_mode) {
+        try {
+            mydb::HttpServer server(&executor, &catalog_manager, server_port, api_key);
+            server.Start();
+        } catch (const std::exception& e) {
+            std::cerr << "\n\033[1;31m[SERVER ERROR]\033[0m " << e.what() << std::endl;
         }
-    }
-
-    if (authenticated) {
-        shell.Run();
     } else {
-        std::cout << "\033[1;31mToo many failed attempts. Exiting.\033[0m" << std::endl;
+        // Security: Simple Login
+        std::string username, password;
+        std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
+        std::cout << "       \033[1;35mV2V Database Security\033[0m       " << std::endl;
+        std::cout << "\033[1;34m-----------------------------------\033[0m" << std::endl;
+        
+        // Simple 3-try mechanism
+        bool authenticated = false;
+        for (int i = 0; i < 3; ++i) {
+            std::cout << "Username: ";
+            std::cin >> username;
+            std::cout << "Password: ";
+            std::cin >> password;
+            
+            // Clear newline from buffer
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            if (username == "admin" && password == "admin") {
+                authenticated = true;
+                std::cout << "\033[1;32mLogin successful.\033[0m" << std::endl;
+                break;
+            } else {
+                 std::cout << "\033[1;31mInvalid credentials. Try again.\033[0m" << std::endl;
+            }
+        }
+
+        if (authenticated) {
+            shell.Run();
+        } else {
+            std::cout << "\033[1;31mToo many failed attempts. Exiting.\033[0m" << std::endl;
+        }
     }
     
         // 6. Save Catalog on Exit
