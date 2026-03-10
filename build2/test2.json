@@ -1,3 +1,0 @@
-{
-    "sql": "INSERT INTO movies VALUES 1, 'Inception', [0.5, 0.8, 0.2]"
-}

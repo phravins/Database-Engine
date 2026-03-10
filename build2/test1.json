@@ -1,3 +1,0 @@
-{
-    "sql": "CREATE TABLE movies id INT, title VARCHAR, embedding VECTOR"
-}
